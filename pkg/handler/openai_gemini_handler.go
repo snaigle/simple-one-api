@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"simple-one-api/pkg/common"
 	"simple-one-api/pkg/mylog"
 
@@ -29,9 +30,14 @@ const (
 	RequestTimeout = 5 * time.Minute
 )
 
+var proxyUrl, _ = url.Parse("http://10.236.182.74:7890")
+
 // 使用全局客户端
 var httpClient = &http.Client{
 	Timeout: RequestTimeout,
+	Transport: &http.Transport{
+		Proxy: http.ProxyURL(proxyUrl),
+	},
 }
 
 // OpenAI2GeminiHandler 主要的处理函数

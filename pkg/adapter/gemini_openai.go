@@ -124,7 +124,7 @@ func GeminiResponseToOpenAIStreamResponse(qfResp *google_gemini.GeminiResponse) 
 				Role:    role,
 				Content: content,
 			},
-			FinishReason: candidate.FinishReason,
+			//FinishReason: candidate.FinishReason,
 		}
 
 		Choices = append(Choices, choice)
