@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/url"
 	"simple-one-api/pkg/common"
 	"simple-one-api/pkg/mylog"
@@ -30,15 +31,11 @@ const (
 	RequestTimeout = 5 * time.Minute
 )
 
-var proxyUrl, _ = url.Parse("http://10.236.182.74:7890")
-
 // 使用全局客户端
 var httpClient = &http.Client{
 	Timeout: RequestTimeout,
-	Transport: &http.Transport{
-		Proxy: http.ProxyURL(proxyUrl),
-	},
 }
+var httpClientWithProxy *http.Client
 
 // OpenAI2GeminiHandler 主要的处理函数
 func OpenAI2GeminiHandler(c *gin.Context, s *config.ModelDetails, oaiReq openai.ChatCompletionRequest) error {
@@ -61,7 +58,7 @@ func OpenAI2GeminiHandler(c *gin.Context, s *config.ModelDetails, oaiReq openai.
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := httpClient.Do(req)
+	resp, err := getClient(s).Do(req)
 	if err != nil {
 		mylog.Logger.Error(err.Error())
 		return err
@@ -163,4 +160,33 @@ func getRequestType(isStream bool) string {
 		return "streamGenerateContent?alt=sse&key="
 	}
 	return "generateContent?key="
+}
+
+func getClient(detail *config.ModelDetails) *http.Client {
+	proxyUrl := ""
+	if detail.Proxy.HTTPProxy != "" {
+		proxyUrl = detail.Proxy.HTTPProxy
+	} else if detail.Proxy.HTTPSProxy != "" {
+		proxyUrl = detail.Proxy.HTTPSProxy
+	}
+	if proxyUrl != "" {
+		if httpClientWithProxy == nil {
+			proxyURI, err := url.Parse(proxyUrl)
+			if err != nil {
+				log.Println("proxy url format error", proxyUrl)
+			} else {
+				httpClientWithProxy = &http.Client{
+					Timeout: RequestTimeout,
+					Transport: &http.Transport{
+						Proxy: http.ProxyURL(proxyURI),
+					},
+				}
+			}
+		}
+		if httpClientWithProxy != nil {
+			log.Println("request by proxy", proxyUrl)
+			return httpClientWithProxy
+		}
+	}
+	return httpClient
 }

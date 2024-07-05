@@ -32,16 +32,20 @@ type Limit struct {
 
 // ServiceModel 定义相关结构体
 type ServiceModel struct {
-	Models             []string          `json:"models"`
-	Enabled            bool              `json:"enabled"`
-	Credentials        map[string]string `json:"credentials"`
-	ServerURL          string            `json:"server_url"`
-	ModelMap           map[string]string `json:"model_map"`
-	ModelRedirect      map[string]string `json:"model_redirect"`
-	Limit              Limit             `json:"limit"`
-	Limiter            *rate.Limiter     `json:"-"`
-	Timeout            int               `json:"-"`
-	ConcurrencyLimiter chan struct{}     `json:"-"`
+	Models        []string          `json:"models"`
+	Enabled       bool              `json:"enabled"`
+	Credentials   map[string]string `json:"credentials"`
+	ServerURL     string            `json:"server_url"`
+	ModelMap      map[string]string `json:"model_map"`
+	ModelRedirect map[string]string `json:"model_redirect"`
+	Proxy         struct {
+		HTTPProxy  string `json:"http_proxy"`
+		HTTPSProxy string `json:"https_proxy"`
+	} `json:"proxy"`
+	Limit              Limit         `json:"limit"`
+	Limiter            *rate.Limiter `json:"-"`
+	Timeout            int           `json:"-"`
+	ConcurrencyLimiter chan struct{} `json:"-"`
 }
 
 type Configuration struct {
